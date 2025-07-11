@@ -1,147 +1,172 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>SMS FORWARDING PANEL</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
     body {
-      margin: 0;
-      background: black;
-      font-family: monospace;
+      background-color: black;
       color: #00ff00;
-      overflow: hidden;
-    }
-    .matrix {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: -1;
-    }
-    .center {
+      font-family: 'Orbitron', monospace;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
-      padding: 20px;
-      text-align: center;
-      box-sizing: border-box;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+    .matrix-bg {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: url('https://media.giphy.com/media/l0HlRmzIZh1z6hrIk/giphy.gif') center/cover no-repeat;
+      opacity: 0.1;
+      z-index: -1;
     }
     h1 {
-      font-size: 36px;
-      margin-bottom: 20px;
+      font-size: 40px;
       text-shadow: 0 0 10px #00ff00;
     }
-    .box {
-      background-color: rgba(0, 0, 0, 0.8);
+    #loginDiv, #mainPanel {
+      background: rgba(0, 0, 0, 0.8);
       border: 2px solid #00ff00;
       padding: 20px;
       border-radius: 10px;
-      width: 90%;
-      max-width: 600px;
+      box-shadow: 0 0 10px #00ff00;
+      margin: 20px;
     }
-    input[type="password"] {
+    input, button {
       padding: 10px;
-      font-size: 16px;
-      width: 80%;
-      margin-top: 10px;
-      background: black;
-      border: 1px solid lime;
-      color: #00ff00;
+      font-size: 18px;
+      border: none;
+      margin: 10px 0;
+      width: 100%;
     }
     button {
-      margin-top: 15px;
-      padding: 10px 25px;
-      font-size: 18px;
-      font-weight: bold;
-      background-color: lime;
+      background: #00ff00;
       color: black;
-      border: none;
-      border-radius: 5px;
+      font-weight: bold;
       cursor: pointer;
     }
-    .sms-box {
-      margin-top: 30px;
-      white-space: pre-wrap;
-      text-align: left;
+    .device {
+      border: 1px solid #00ff00;
+      margin: 10px 0;
+      padding: 10px;
+      cursor: pointer;
     }
-    .dev-btn {
-      margin-top: 25px;
-      font-size: 16px;
+    .sms {
+      margin: 5px;
+      border-bottom: 1px dashed #00ff00;
+      padding: 5px;
+    }
+    #devBtn {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
       background: yellow;
+      color: black;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <canvas class="matrix"></canvas>
-  <div class="center">
-    <h1>SMS FORWARDING PANEL</h1>
-    <div class="box" id="loginBox">
-      <p><strong>Enter Password to View SMS</strong></p>
-      <input type="password" id="panelPass" placeholder="Enter Password" />
-      <br/>
-      <button onclick="checkPassword()">Open Panel</button>
-      <p id="error" style="color:red; font-weight:bold;"></p>
-    </div>
+  <div class="matrix-bg"></div>
+  <h1>SMS FORWARDING PANEL</h1>
 
-    <div class="box" id="smsBox" style="display:none;">
-      <h3>📨 Latest SMS</h3>
-      <div id="smsContent">Loading SMS...</div>
-      <button class="dev-btn" onclick="window.open('https://youtube.com/@mithun_pasi?si=-cERsnWuqpl3lAnz')">
-        🔗 Developed by Click 2 Hack
-      </button>
-    </div>
+  <div id="loginDiv">
+    <input type="text" id="uid" placeholder="User ID">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p id="error" style="color:red;"></p>
   </div>
 
+  <div id="mainPanel" style="display:none;">
+    <h2 id="userLabel"></h2>
+    <div id="devices"></div>
+    <div id="smsList"></div>
+  </div>
+
+  <button id="devBtn" onclick="window.open('https://youtube.com/@mithun_pasi?si=UOVkOvIQwzhDd0mQ')">Developer: Click 2 Hack</button>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script>
-    // Matrix animation
-    const canvas = document.querySelector('.matrix');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    const cols = Math.floor(canvas.width / 20);
-    const drops = Array(cols).fill(1);
-    function draw() {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#0f0';
-      ctx.font = '20px monospace';
-      drops.forEach((y, i) => {
-        const text = String.fromCharCode(0x30A0 + Math.random() * 96);
-        ctx.fillText(text, i * 20, y * 20);
-        if (y * 20 > canvas.height || Math.random() > 0.975) drops[i] = 0;
-        drops[i]++;
+    const firebaseConfig = {
+      apiKey: "AIzaSyAp9_WooT-YjLg3NfBMtHDuGYEdudDBWTU",
+      authDomain: "sms-forward-panel.firebaseapp.com",
+      databaseURL: "https://sms-forward-panel-default-rtdb.firebaseio.com",
+      projectId: "sms-forward-panel",
+      storageBucket: "sms-forward-panel.firebasestorage.app",
+      messagingSenderId: "755043043791",
+      appId: "1:755043043791:web:2eea07df0a7f7d68e1eaba"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function login() {
+      const uid = document.getElementById('uid').value;
+      const pass = document.getElementById('password').value;
+      db.ref("users/" + uid).get().then(snap => {
+        if (!snap.exists()) {
+          document.getElementById('error').innerText = "User not found!";
+          return;
+        }
+        const data = snap.val();
+        if (data.status === "expired") {
+          document.getElementById('error').innerText = "Password expired!";
+          return;
+        }
+        if (data.password !== pass) {
+          document.getElementById('error').innerText = "Wrong password!";
+          return;
+        }
+        document.getElementById('loginDiv').style.display = "none";
+        document.getElementById('mainPanel').style.display = "block";
+        document.getElementById('userLabel').innerText = "Welcome, " + uid.toUpperCase();
+        loadDevices(uid);
       });
     }
-    setInterval(draw, 35);
 
-    // Password check
-    function checkPassword() {
-      const entered = document.getElementById("panelPass").value;
-      if (entered === "902612") {
-        document.getElementById("loginBox").style.display = "none";
-        document.getElementById("smsBox").style.display = "block";
-        fetchSMS();
-      } else {
-        document.getElementById("error").textContent = "❌ Wrong Password!";
-      }
+    function loadDevices(uid) {
+      db.ref("users/" + uid + "/devices").on("value", snap => {
+        const devices = snap.val();
+        const container = document.getElementById('devices');
+        container.innerHTML = "";
+        if (!devices) {
+          container.innerHTML = "<p>No devices linked.</p>";
+          return;
+        }
+        for (let key in devices) {
+          const div = document.createElement("div");
+          div.className = "device";
+          div.innerText = "📱 " + (devices[key].number || "Unknown");
+          div.onclick = () => showSMS(uid, key);
+          container.appendChild(div);
+        }
+      });
     }
 
-    // SMS fetch from ControlC
-    function fetchSMS() {
-      fetch("https://controlc.com/aadf6af4")
-        .then(res => res.text())
-        .then(html => {
-          const match = html.match(/<div id="paste">([\s\S]*?)<\/div>/);
-          const clean = match ? match[1].replace(/<[^>]+>/g, "").trim() : "⚠ No SMS Found!";
-          document.getElementById("smsContent").textContent = clean;
-        })
-        .catch(err => {
-          document.getElementById("smsContent").textContent = "⚠ Failed to load SMS!";
-        });
+    function showSMS(uid, deviceId) {
+      db.ref("users/" + uid + "/devices/" + deviceId + "/sms").on("value", snap => {
+        const smsList = snap.val();
+        const box = document.getElementById("smsList");
+        box.innerHTML = "<h3>Messages:</h3>";
+        if (!smsList) {
+          box.innerHTML += "<p>No messages found.</p>";
+          return;
+        }
+        for (let key in smsList) {
+          const sms = smsList[key];
+          const div = document.createElement("div");
+          div.className = "sms";
+          div.innerHTML = `<strong>From:</strong> ${sms.from}<br><strong>Message:</strong> ${sms.message}<br><strong>Time:</strong> ${sms.time}`;
+          box.appendChild(div);
+        }
+      });
     }
   </script>
 </body>
