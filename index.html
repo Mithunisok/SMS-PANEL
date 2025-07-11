@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>SMS FORWARDING PANEL</title>
   <style>
     body {
@@ -9,13 +10,14 @@
       background: black;
       font-family: monospace;
       color: #00ff00;
+      overflow: hidden;
     }
     .matrix {
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      height: 100vh;
       z-index: -1;
     }
     .center {
@@ -24,7 +26,9 @@
       align-items: center;
       justify-content: center;
       min-height: 100vh;
+      padding: 20px;
       text-align: center;
+      box-sizing: border-box;
     }
     h1 {
       font-size: 36px;
@@ -93,6 +97,7 @@
   </div>
 
   <script>
+    // Matrix animation
     const canvas = document.querySelector('.matrix');
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
@@ -113,6 +118,7 @@
     }
     setInterval(draw, 35);
 
+    // Password check
     function checkPassword() {
       const entered = document.getElementById("panelPass").value;
       if (entered === "902612") {
@@ -124,6 +130,7 @@
       }
     }
 
+    // SMS fetch from ControlC
     function fetchSMS() {
       fetch("https://controlc.com/aadf6af4")
         .then(res => res.text())
