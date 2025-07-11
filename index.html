@@ -7,7 +7,7 @@
     body {
       margin: 0;
       background: black;
-      font-family: 'Courier New', monospace;
+      font-family: monospace;
       color: #00ff00;
     }
     .matrix {
@@ -23,67 +23,72 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
+      min-height: 100vh;
       text-align: center;
     }
     h1 {
-      font-size: 38px;
-      color: #00ff00;
+      font-size: 36px;
+      margin-bottom: 20px;
       text-shadow: 0 0 10px #00ff00;
     }
-    .password-box, .sms-box {
+    .box {
       background-color: rgba(0, 0, 0, 0.8);
       border: 2px solid #00ff00;
       padding: 20px;
       border-radius: 10px;
+      width: 90%;
       max-width: 600px;
-      width: 80%;
     }
     input[type="password"] {
       padding: 10px;
-      font-size: 18px;
+      font-size: 16px;
       width: 80%;
       margin-top: 10px;
+      background: black;
+      border: 1px solid lime;
+      color: #00ff00;
     }
     button {
       margin-top: 15px;
-      padding: 10px 20px;
+      padding: 10px 25px;
       font-size: 18px;
       font-weight: bold;
       background-color: lime;
       color: black;
       border: none;
+      border-radius: 5px;
       cursor: pointer;
-      border-radius: 8px;
     }
-    pre {
-      text-align: left;
+    .sms-box {
+      margin-top: 30px;
       white-space: pre-wrap;
+      text-align: left;
     }
     .dev-btn {
-      margin-top: 30px;
-      font-size: 18px;
+      margin-top: 25px;
+      font-size: 16px;
       background: yellow;
     }
   </style>
 </head>
 <body>
   <canvas class="matrix"></canvas>
-
   <div class="center">
     <h1>SMS FORWARDING PANEL</h1>
-
-    <div class="password-box" id="loginBox">
-      <p>Enter Panel Password:</p>
-      <input type="password" id="panelPass" placeholder="Password here" />
+    <div class="box" id="loginBox">
+      <p><strong>Enter Password to View SMS</strong></p>
+      <input type="password" id="panelPass" placeholder="Enter Password" />
+      <br/>
       <button onclick="checkPassword()">Open Panel</button>
-      <p id="error" style="color:red;"></p>
+      <p id="error" style="color:red; font-weight:bold;"></p>
     </div>
 
-    <div class="sms-box" id="smsBox" style="display:none;">
-      <h3>📩 Latest SMS</h3>
-      <pre id="smsContent">Loading...</pre>
-      <button class="dev-btn" onclick="window.open('https://youtube.com/@mithun_pasi?si=-cERsnWuqpl3lAnz')">Developed by Click 2 Hack</button>
+    <div class="box" id="smsBox" style="display:none;">
+      <h3>📨 Latest SMS</h3>
+      <div id="smsContent">Loading SMS...</div>
+      <button class="dev-btn" onclick="window.open('https://youtube.com/@mithun_pasi?si=-cERsnWuqpl3lAnz')">
+        🔗 Developed by Click 2 Hack
+      </button>
     </div>
   </div>
 
@@ -92,49 +97,43 @@
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-
     const cols = Math.floor(canvas.width / 20);
     const drops = Array(cols).fill(1);
-
     function draw() {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#0f0';
       ctx.font = '20px monospace';
-
       drops.forEach((y, i) => {
         const text = String.fromCharCode(0x30A0 + Math.random() * 96);
         ctx.fillText(text, i * 20, y * 20);
-        if (y * 20 > canvas.height || Math.random() > 0.975) {
-          drops[i] = 0;
-        }
+        if (y * 20 > canvas.height || Math.random() > 0.975) drops[i] = 0;
         drops[i]++;
       });
     }
-
     setInterval(draw, 35);
 
     function checkPassword() {
-      const entered = document.getElementById('panelPass').value;
-      if (entered === '902612') {
-        document.getElementById('loginBox').style.display = 'none';
-        document.getElementById('smsBox').style.display = 'block';
+      const entered = document.getElementById("panelPass").value;
+      if (entered === "902612") {
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("smsBox").style.display = "block";
         fetchSMS();
       } else {
-        document.getElementById('error').textContent = '❌ Wrong Password!';
+        document.getElementById("error").textContent = "❌ Wrong Password!";
       }
     }
 
     function fetchSMS() {
-      fetch('https://controlc.com/aadf6af4')
+      fetch("https://controlc.com/aadf6af4")
         .then(res => res.text())
         .then(html => {
           const match = html.match(/<div id="paste">([\s\S]*?)<\/div>/);
-          const content = match ? match[1].replace(/<[^>]*>/g, '') : '⚠ SMS not found';
-          document.getElementById('smsContent').textContent = content.trim();
+          const clean = match ? match[1].replace(/<[^>]+>/g, "").trim() : "⚠ No SMS Found!";
+          document.getElementById("smsContent").textContent = clean;
         })
         .catch(err => {
-          document.getElementById('smsContent').textContent = '⚠ Failed to load SMS';
+          document.getElementById("smsContent").textContent = "⚠ Failed to load SMS!";
         });
     }
   </script>
