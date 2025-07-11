@@ -1,0 +1,12 @@
+[
+  {
+    "id": "device_ABC123",
+    "name": "Device 1",
+    "number": "+918888000001"
+  },
+  {
+    "id": "device_XYZ999",
+    "name": "Device 2",
+    "number": "+919999000002"
+  }
+]
