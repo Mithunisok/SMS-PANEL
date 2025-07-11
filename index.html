@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
   <title>SMS FORWARDING PANEL</title>
   <style>
     body {
@@ -10,85 +9,134 @@
       background: black;
       font-family: 'Courier New', monospace;
       color: #00ff00;
-      overflow: hidden;
     }
     .matrix {
       position: fixed;
       top: 0;
       left: 0;
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 100%;
       z-index: -1;
     }
-    .content {
+    .center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
       text-align: center;
-      position: relative;
-      top: 20vh;
     }
     h1 {
-      font-size: 40px;
-      color: #39ff14;
+      font-size: 38px;
+      color: #00ff00;
       text-shadow: 0 0 10px #00ff00;
     }
-    iframe {
-      width: 90%;
-      height: 400px;
-      border: 2px solid lime;
-      margin-top: 30px;
-    }
-    .btn {
-      background-color: yellow;
-      border: none;
-      font-weight: bold;
-      font-size: 20px;
-      padding: 12px 25px;
+    .password-box, .sms-box {
+      background-color: rgba(0, 0, 0, 0.8);
+      border: 2px solid #00ff00;
+      padding: 20px;
       border-radius: 10px;
+      max-width: 600px;
+      width: 80%;
+    }
+    input[type="password"] {
+      padding: 10px;
+      font-size: 18px;
+      width: 80%;
+      margin-top: 10px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 18px;
+      font-weight: bold;
+      background-color: lime;
+      color: black;
+      border: none;
       cursor: pointer;
-      margin-top: 40px;
+      border-radius: 8px;
+    }
+    pre {
+      text-align: left;
+      white-space: pre-wrap;
+    }
+    .dev-btn {
+      margin-top: 30px;
+      font-size: 18px;
+      background: yellow;
     }
   </style>
 </head>
 <body>
   <canvas class="matrix"></canvas>
 
-  <div class="content">
+  <div class="center">
     <h1>SMS FORWARDING PANEL</h1>
-    <iframe src="https://controlc.com/aadf6af4"></iframe>
-    <br>
-    <button class="btn" onclick="window.open('https://youtube.com/@mithun_pasi?si=-cERsnWuqpl3lAnz')">
-      Developed by Click 2 Hack
-    </button>
+
+    <div class="password-box" id="loginBox">
+      <p>Enter Panel Password:</p>
+      <input type="password" id="panelPass" placeholder="Password here" />
+      <button onclick="checkPassword()">Open Panel</button>
+      <p id="error" style="color:red;"></p>
+    </div>
+
+    <div class="sms-box" id="smsBox" style="display:none;">
+      <h3>📩 Latest SMS</h3>
+      <pre id="smsContent">Loading...</pre>
+      <button class="dev-btn" onclick="window.open('https://youtube.com/@mithun_pasi?si=-cERsnWuqpl3lAnz')">Developed by Click 2 Hack</button>
+    </div>
   </div>
 
   <script>
     const canvas = document.querySelector('.matrix');
     const ctx = canvas.getContext('2d');
-
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    const columns = canvas.width / 20;
-    const drops = Array(Math.floor(columns)).fill(1);
+    const cols = Math.floor(canvas.width / 20);
+    const drops = Array(cols).fill(1);
 
-    function drawMatrix() {
+    function draw() {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-
       ctx.fillStyle = '#0f0';
       ctx.font = '20px monospace';
 
-      for (let i = 0; i < drops.length; i++) {
+      drops.forEach((y, i) => {
         const text = String.fromCharCode(0x30A0 + Math.random() * 96);
-        ctx.fillText(text, i * 20, drops[i] * 20);
-
-        if (drops[i] * 20 > canvas.height || Math.random() > 0.975) {
+        ctx.fillText(text, i * 20, y * 20);
+        if (y * 20 > canvas.height || Math.random() > 0.975) {
           drops[i] = 0;
         }
         drops[i]++;
+      });
+    }
+
+    setInterval(draw, 35);
+
+    function checkPassword() {
+      const entered = document.getElementById('panelPass').value;
+      if (entered === '902612') {
+        document.getElementById('loginBox').style.display = 'none';
+        document.getElementById('smsBox').style.display = 'block';
+        fetchSMS();
+      } else {
+        document.getElementById('error').textContent = '❌ Wrong Password!';
       }
     }
 
-    setInterval(drawMatrix, 35);
+    function fetchSMS() {
+      fetch('https://controlc.com/aadf6af4')
+        .then(res => res.text())
+        .then(html => {
+          const match = html.match(/<div id="paste">([\s\S]*?)<\/div>/);
+          const content = match ? match[1].replace(/<[^>]*>/g, '') : '⚠ SMS not found';
+          document.getElementById('smsContent').textContent = content.trim();
+        })
+        .catch(err => {
+          document.getElementById('smsContent').textContent = '⚠ Failed to load SMS';
+        });
+    }
   </script>
 </body>
 </html>
